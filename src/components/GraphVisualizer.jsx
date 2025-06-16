@@ -14,20 +14,35 @@ export default function GraphVisualizer() {
   const [startNodeId, setStartNodeId] = useState(null);
 
   const handleCanvasClick = (e) => {
-    if (e.target.classList.contains('node') || e.target.classList.contains('weight-label')) return;
+  const blockedClasses = ['node', 'weight-label', 'controls', 'instructions'];
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  let el = e.target;
+  let shouldBlock = false;
 
-    const newNode = {
-      id: nodeIdCounter++,
-      x,
-      y
-    };
+  while (el) {
+    if (el.classList && blockedClasses.some(cls => el.classList.contains(cls))) {
+      shouldBlock = true;
+      break;
+    }
+    el = el.parentElement;
+  }
 
-    setNodes([...nodes, newNode]);
+  if (shouldBlock) return;
+
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const newNode = {
+    id: nodeIdCounter++,
+    x,
+    y
   };
+
+  setNodes([...nodes, newNode]);
+};
+
+
 
   const handleNodeClick = (e, nodeId) => {
     e.stopPropagation();

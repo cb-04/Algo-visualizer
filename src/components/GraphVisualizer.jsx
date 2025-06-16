@@ -12,37 +12,23 @@ export default function GraphVisualizer() {
   const [edges, setEdges] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [startNodeId, setStartNodeId] = useState(null);
+  const [visitedNodes, setVisitedNodes] = useState([]);
 
   const handleCanvasClick = (e) => {
-  const blockedClasses = ['node', 'weight-label', 'controls', 'instructions'];
+    if (e.target.closest('.controls') || e.target.closest('.instructions')) return;
 
-  let el = e.target;
-  let shouldBlock = false;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  while (el) {
-    if (el.classList && blockedClasses.some(cls => el.classList.contains(cls))) {
-      shouldBlock = true;
-      break;
-    }
-    el = el.parentElement;
-  }
+    const newNode = {
+      id: nodeIdCounter++,
+      x,
+      y
+    };
 
-  if (shouldBlock) return;
-
-  const rect = e.currentTarget.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  const newNode = {
-    id: nodeIdCounter++,
-    x,
-    y
+    setNodes([...nodes, newNode]);
   };
-
-  setNodes([...nodes, newNode]);
-};
-
-
 
   const handleNodeClick = (e, nodeId) => {
     e.stopPropagation();
@@ -72,31 +58,43 @@ export default function GraphVisualizer() {
     }
   };
 
-  const runDFS = () => {
-    if (startNodeId === null) return alert('Please select a start node!');
-    const visited = dfs(nodes, edges, startNodeId);
-    alert(`DFS Order: ${visited.join(' → ')}`);
+  const animateTraversal = async (order) => {
+    for (let i = 0; i < order.length; i++) {
+      setVisitedNodes(prev => [...prev, order[i]]);
+      await new Promise(res => setTimeout(res, 500));
+    }
   };
 
-  const runBFS = () => {
+  const runDFS = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
-    const visited = bfs(nodes, edges, startNodeId);
-    alert(`BFS Order: ${visited.join(' → ')}`);
+    setVisitedNodes([]);
+    const order = dfs(nodes, edges, startNodeId);
+    await animateTraversal(order);
   };
 
-  const runDijkstra = () => {
+  const runBFS = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
-    const { distances } = dijkstra(nodes, edges, startNodeId);
-    alert(`Distances:\n${JSON.stringify(distances, null, 2)}`);
+    setVisitedNodes([]);
+    const order = bfs(nodes, edges, startNodeId);
+    await animateTraversal(order);
   };
 
-  const runBellmanFord = () => {
+  const runDijkstra = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
+    setVisitedNodes([]);
+    const { visitedOrder } = dijkstra(nodes, edges, startNodeId);
+    await animateTraversal(visitedOrder);
+  };
+
+  const runBellmanFord = async () => {
+    if (startNodeId === null) return alert('Please select a start node!');
+    setVisitedNodes([]);
     const result = bellmanFord(nodes, edges, startNodeId);
     if (result.hasNegativeCycle) {
       alert('Graph contains a negative weight cycle.');
     } else {
-      alert(`Distances:\n${JSON.stringify(result.distances, null, 2)}`);
+      const order = Object.keys(result.distances).map(id => parseInt(id));
+      await animateTraversal(order);
     }
   };
 
@@ -166,7 +164,7 @@ export default function GraphVisualizer() {
       {nodes.map((node) => (
         <div
           key={node.id}
-          className={`node ${selectedNode === node.id ? 'selected' : ''}`}
+          className={`node ${selectedNode === node.id ? 'selected' : ''} ${visitedNodes.includes(node.id) ? 'visited' : ''}`}
           onClick={(e) => handleNodeClick(e, node.id)}
           style={{
             left: `${node.x}px`,

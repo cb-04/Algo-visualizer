@@ -122,3 +122,10 @@
 .algo-buttons button:hover {
   background-color: #0056b3;
 }
+
+.node.visited {
+  background-color: orange;
+  border: 2px solid red;
+  transition: background-color 0.3s ease, border 0.3s ease;
+}
+

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import '../styles/SortingVisualizer.css';
 
 import bubbleSort from '../algorithms/bubbleSort';
-// import insertionSort from '../algorithms/insertionSort'; // add as you build
-// import selectionSort from '../algorithms/selectionSort';
+import insertionSort from '../algorithms/insertionSort';
+import selectionSort from '../algorithms/selectionSort';
 // import mergeSort from '../algorithms/mergeSort';
 
 export default function SortingVisualizer() {
@@ -22,6 +22,18 @@ export default function SortingVisualizer() {
     setSortedIndices([]);
     await bubbleSort(array, setArray, setActiveIndices, setSortedIndices);
   };
+
+  const handleInsertionSort = async () => {
+    setSortedIndices([]);
+    await insertionSort(array, setArray, setActiveIndices, setSortedIndices);
+  };
+
+  const handleSelectionSort = async () => {
+     setSortedIndices([]);
+     await selectionSort(array, setArray, setActiveIndices, setSortedIndices);
+ };
+
+
 
   // Add similar handlers for insertionSort, selectionSort, mergeSort etc.
 
@@ -51,8 +63,8 @@ export default function SortingVisualizer() {
         <h3>Algorithms</h3>
         <button onClick={generateNewArray}>Generate New Array</button>
         <button onClick={handleBubbleSort}>Bubble Sort</button>
-        <button disabled>Insertion Sort</button>
-        <button disabled>Selection Sort</button>
+        <button onClick={handleInsertionSort}>Insertion Sort</button>
+        <button onClick={handleSelectionSort}>Selection Sort</button>
         <button disabled>Merge Sort</button>
       </div>
     </div>

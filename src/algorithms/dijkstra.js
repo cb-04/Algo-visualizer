@@ -1,13 +1,14 @@
-export default function dijkstra(nodes, edges, startId) {
+export default function dijkstra(nodes, edges, startId, isDirected = true) {
   const distances = {};
   const visitedOrder = [];
   const visited = new Set();
 
+  // Initialize distances to infinity
   nodes.forEach(n => distances[n.id] = Infinity);
   distances[startId] = 0;
 
   while (visited.size < nodes.length) {
-    // Pick unvisited node with smallest distance
+    // Pick unvisited node with the smallest distance
     let currentNode = null;
     let smallestDistance = Infinity;
 
@@ -23,10 +24,13 @@ export default function dijkstra(nodes, edges, startId) {
     visitedOrder.push(currentNode);
     visited.add(currentNode);
 
-    // Update neighbors
+    // Update neighbors (respecting directed or undirected setting)
     for (let edge of edges) {
-      if (edge.from === currentNode) {
-        const neighbor = edge.to;
+      const isForward = edge.from === currentNode;
+      const isReverse = !isDirected && edge.to === currentNode;
+
+      if (isForward || isReverse) {
+        const neighbor = isForward ? edge.to : edge.from;
         const alt = distances[currentNode] + edge.weight;
         if (alt < distances[neighbor]) {
           distances[neighbor] = alt;

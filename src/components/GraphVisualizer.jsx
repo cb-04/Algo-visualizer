@@ -39,7 +39,7 @@ export default function GraphVisualizer() {
         const parsedWeight = parseFloat(weightInput);
         if (!isNaN(parsedWeight)) {
           const newEdges = [{ from: selectedNode, to: nodeId, weight: parsedWeight, directed: isDirected }];
-          if (!isDirected) newEdges.push({ from: nodeId, to: selectedNode, weight: parsedWeight, directed: isDirected });    
+          if (!isDirected) newEdges.push({ from: nodeId, to: selectedNode, weight: parsedWeight, directed: isDirected });
           setEdges([...edges, ...newEdges]);
         } else {
           alert('Invalid weight. Edge not created.');
@@ -59,21 +59,21 @@ export default function GraphVisualizer() {
   const runDFS = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
     setVisitedNodes([]);
-    const order = dfs(nodes, edges, startNodeId);
+    const order = dfs(nodes, edges, startNodeId, isDirected);
     await animateTraversal(order);
   };
 
   const runBFS = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
     setVisitedNodes([]);
-    const order = bfs(nodes, edges, startNodeId);
+    const order = bfs(nodes, edges, startNodeId, isDirected);
     await animateTraversal(order);
   };
 
   const runDijkstra = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
     setVisitedNodes([]);
-    const { distances, visitedOrder } = dijkstra(nodes, edges, startNodeId);
+    const { distances, visitedOrder } = dijkstra(nodes, edges, startNodeId, isDirected);
     setDistances(distances);
     await animateTraversal(visitedOrder);
   };
@@ -81,7 +81,7 @@ export default function GraphVisualizer() {
   const runBellmanFord = async () => {
     if (startNodeId === null) return alert('Please select a start node!');
     setVisitedNodes([]);
-    const result = bellmanFord(nodes, edges, startNodeId);
+    const result = bellmanFord(nodes, edges, startNodeId, isDirected);
     if (result.hasNegativeCycle) {
       alert('Graph contains a negative weight cycle.');
     } else {
@@ -92,8 +92,16 @@ export default function GraphVisualizer() {
   };
 
   return (
-    <div className="graph-canvas" onClick={handleCanvasClick}>
+    <div className="graph-canvas">
       <div className="controls">
+        <div className="how-to">
+          <h3> How to use:</h3>
+          <ul>
+            <li> Click anywhere on the screen to create a node.</li>
+            <li> Click two nodes in succession to create an edge (enter weight when prompted).</li>
+            <li> <strong>Shift + Click</strong> on a node to delete it.</li>
+          </ul>
+        </div>
         <h3>Choose Start Node:</h3>
         <select value={startNodeId ?? ''} onChange={(e) => setStartNodeId(parseInt(e.target.value))}>
           <option value="">Select Start Node</option>
@@ -115,87 +123,77 @@ export default function GraphVisualizer() {
         </div>
       </div>
 
-      <svg className="graph-edges" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
-            <polygon points="0 0, 10 3.5, 0 7" fill="white" />
-          </marker>
-        </defs>
-        {edges.map((edge, index) => {
-          const from = nodes.find(n => n.id === edge.from);
-          const to = nodes.find(n => n.id === edge.to);
-          if (!from || !to) return null;
+      <div className="canvas-area" onClick={handleCanvasClick}>
+        <svg className="graph-edges" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0 0, 10 3.5, 0 7" fill="white" />
+            </marker>
+          </defs>
+          {edges.map((edge, index) => {
+            const from = nodes.find(n => n.id === edge.from);
+            const to = nodes.find(n => n.id === edge.to);
+            if (!from || !to) return null;
 
-          const x1 = from.x + 15;
-          const y1 = from.y + 15;
-          const x2 = to.x + 15;
-          const y2 = to.y + 15;
-          const midX = (x1 + x2) / 2;
-          const midY = (y1 + y2) / 2;
-          // Calculate direction
-          const dx = x2 - x1;
-          const dy = y2 - y1;
-          const distance = Math.hypot(dx, dy);
-          const nodeRadius = 15; // Adjust based on node size
+            const x1 = from.x + 15;
+            const y1 = from.y + 15;
+            const x2 = to.x + 15;
+            const y2 = to.y + 15;
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
 
-          // Shorten end of line to stop before hitting the node
-          const shortenRatio = (distance - nodeRadius) / distance;
-          const shortenedX2 = x1 + dx * shortenRatio;
-          const shortenedY2 = y1 + dy * shortenRatio;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const distance = Math.hypot(dx, dy);
+            const nodeRadius = 15;
 
-          // Similarly, if you want to shorten the start too (optional)
-          const shortenStartRatio = nodeRadius / distance;
-          const shortenedX1 = x1 + dx * shortenStartRatio;
-          const shortenedY1 = y1 + dy * shortenStartRatio;
+            const shortenRatio = (distance - nodeRadius) / distance;
+            const shortenedX2 = x1 + dx * shortenRatio;
+            const shortenedY2 = y1 + dy * shortenRatio;
 
+            const shortenStartRatio = nodeRadius / distance;
+            const shortenedX1 = x1 + dx * shortenStartRatio;
+            const shortenedY1 = y1 + dy * shortenStartRatio;
 
-          return (
-            <React.Fragment key={index}>
-              <line
-                x1={shortenedX1}
-                y1={shortenedY1}
-                x2={shortenedX2}
-                y2={shortenedY2}
-                stroke="white"
-                strokeWidth="2"
-                markerEnd={edge.directed ? 'url(#arrowhead)' : ''}
-              />
+            return (
+              <React.Fragment key={index}>
+                <line
+                  x1={shortenedX1}
+                  y1={shortenedY1}
+                  x2={shortenedX2}
+                  y2={shortenedY2}
+                  stroke="white"
+                  strokeWidth="2"
+                  markerEnd={edge.directed ? 'url(#arrowhead)' : ''}
+                />
+                <text
+                  x={midX}
+                  y={midY - 5}
+                  fill="white"
+                  fontSize="12"
+                  textAnchor="middle"
+                >
+                  {edge.weight}
+                </text>
+              </React.Fragment>
+            );
+          })}
+        </svg>
 
-              <text
-                x={midX}
-                y={midY - 5}
-                fill="white"
-                fontSize="12"
-                textAnchor="middle"
-              >
-                {edge.weight}
-              </text>
-            </React.Fragment>
-          );
-        })}
-      </svg>
-
-      {nodes.map((node) => (
-        <div
-          key={node.id}
-          className={`node ${selectedNode === node.id ? 'selected' : ''} ${visitedNodes.includes(node.id) ? 'visited' : ''}`}
-          onClick={(e) => handleNodeClick(e, node.id)}
-          style={{ left: `${node.x}px`, top: `${node.y}px`, zIndex: 1 }}
-        >
-          {node.id}
-          <div className="distance-label">
-            {distances[node.id] !== undefined ? `(${distances[node.id]})` : ''}
+        {nodes.map((node) => (
+          <div
+            key={node.id}
+            className={`node ${selectedNode === node.id ? 'selected' : ''} ${visitedNodes.includes(node.id) ? 'visited' : ''}`}
+            onClick={(e) => handleNodeClick(e, node.id)}
+            style={{ left: `${node.x}px`, top: `${node.y}px`, zIndex: 1 }}
+          >
+            {node.id}
+            <div className="distance-label">
+              {distances[node.id] !== undefined ? `(${distances[node.id]})` : ''}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      <div className="instructions">
-        <h3> How to use:</h3>
-        <ul>
-          <li> Click anywhere on the screen to create a node.</li>
-          <li> Click two nodes in succession to create an edge (enter weight when prompted).</li>
-          <li> <strong>Shift + Click</strong> on a node to delete it.</li>
-        </ul>
       </div>
     </div>
   );

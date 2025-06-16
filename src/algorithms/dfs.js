@@ -1,4 +1,4 @@
-export default function dfs(nodes, edges, startId) {
+export default function dfs(nodes, edges, startId, isDirected = true) {
   const visited = [];
   const visitedSet = new Set();
 
@@ -9,7 +9,9 @@ export default function dfs(nodes, edges, startId) {
 
   edges.forEach(edge => {
     adjacencyList[edge.from].push(edge.to);
-    adjacencyList[edge.to].push(edge.from); // Make it undirected
+    if (!isDirected) {
+      adjacencyList[edge.to].push(edge.from); // Only add reverse if undirected
+    }
   });
 
   function dfsHelper(nodeId) {

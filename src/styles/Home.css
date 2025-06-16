@@ -29,9 +29,10 @@
 }
 
 .sorting {
-  border-left: 6px solid #f39c12;
+  border-left: 6px solid #3498db;
 }
 
 .graph {
-  border-left: 6px solid #3498db;
+  border-left: 6px solid #f39c12;
 }
+

@@ -1,4 +1,4 @@
-export default function bfs(nodes, edges, startId) {
+export default function bfs(nodes, edges, startId, isDirected = true) {
   const visited = [];
   const visitedSet = new Set();
   const queue = [startId];
@@ -8,9 +8,12 @@ export default function bfs(nodes, edges, startId) {
   nodes.forEach(node => {
     adjacencyList[node.id] = [];
   });
+
   edges.forEach(edge => {
     adjacencyList[edge.from].push(edge.to);
-    adjacencyList[edge.to].push(edge.from);
+    if (!isDirected) {
+      adjacencyList[edge.to].push(edge.from); // Add reverse edge only if undirected
+    }
   });
 
   while (queue.length > 0) {
@@ -26,3 +29,4 @@ export default function bfs(nodes, edges, startId) {
 
   return visited;
 }
+

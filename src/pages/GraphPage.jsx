@@ -1,3 +1,13 @@
-export default function GraphPage() {
-  return <h2 style={{ textAlign: 'center', marginTop: '3rem' }}>Graph Visualizer Coming Soon</h2>;
-}
+import React from 'react';
+import GraphVisualizer from '../components/GraphVisualizer';
+
+const GraphPage = () => {
+  return (
+    <div>
+      <GraphVisualizer />
+    </div>
+  );
+};
+
+export default GraphPage;
+

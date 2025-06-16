@@ -9,7 +9,10 @@ export default function GraphVisualizer() {
   const [selectedNode, setSelectedNode] = useState(null);
 
   const handleCanvasClick = (e) => {
-    const rect = e.target.getBoundingClientRect();
+    // Prevent creating node if clicking on existing node or label
+    if (e.target.classList.contains('node') || e.target.classList.contains('weight-label')) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
@@ -27,7 +30,14 @@ export default function GraphVisualizer() {
       setSelectedNode(nodeId);
     } else {
       if (selectedNode !== nodeId) {
-        setEdges([...edges, { from: selectedNode, to: nodeId }]);
+        const weightInput = prompt("Enter edge weight (positive or negative):", "1");
+        const weight = parseFloat(weightInput);
+
+        if (!isNaN(weight)) {
+          setEdges([...edges, { from: selectedNode, to: nodeId, weight }]);
+        } else {
+          alert("Invalid weight!");
+        }
       }
       setSelectedNode(null);
     }
@@ -43,20 +53,32 @@ export default function GraphVisualizer() {
 
         const x1 = from.x + 15, y1 = from.y + 15;
         const x2 = to.x + 15, y2 = to.y + 15;
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
         const length = Math.hypot(x2 - x1, y2 - y1);
         const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 
         return (
-          <div
-            key={index}
-            className="edge"
-            style={{
-              left: `${x1}px`,
-              top: `${y1}px`,
-              width: `${length}px`,
-              transform: `rotate(${angle}deg)`
-            }}
-          />
+          <React.Fragment key={index}>
+            <div
+              className="edge"
+              style={{
+                left: `${x1}px`,
+                top: `${y1}px`,
+                width: `${length}px`,
+                transform: `rotate(${angle}deg)`
+              }}
+            />
+            <div
+              className="weight-label"
+              style={{
+                left: `${midX}px`,
+                top: `${midY}px`
+              }}
+            >
+              {edge.weight}
+            </div>
+          </React.Fragment>
         );
       })}
 
@@ -65,10 +87,13 @@ export default function GraphVisualizer() {
         <div
           key={node.id}
           className={`node ${selectedNode === node.id ? 'selected' : ''}`}
-          style={{ left: node.x, top: node.y }}
           onClick={(e) => {
-            e.stopPropagation(); // prevent canvas click
+            e.stopPropagation(); // Don’t trigger canvas click
             handleNodeClick(node.id);
+          }}
+          style={{
+            left: `${node.x}px`,
+            top: `${node.y}px`
           }}
         >
           {node.id}

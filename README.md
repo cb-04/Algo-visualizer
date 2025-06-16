@@ -24,6 +24,13 @@ Welcome to the **Sorting & Graph Algorithms Visualizer** – an interactive, int
   * Step-by-step swapping & merging
   * Color-coded transitions
 
+<p align="center">
+  <img src="src/Sorting%20ScreenShot.png" width="700" height="400" />
+  <br />
+  <em>Figure 1: Sorting visualizer (Merge Sort)</em>
+</p>
+
+
 ###  Graph Visualizer
 
 * **Node Creation:** Click anywhere to place a node.
@@ -41,6 +48,12 @@ Welcome to the **Sorting & Graph Algorithms Visualizer** – an interactive, int
 
   * Highlighted visited nodes
   * Distance labels for Dijkstra and Bellman-Ford
+ 
+ <p align="center">
+  <img src="src/Graph%20ScreenShot.png" width="700" height="400" />
+  <br />
+  <em>Figure 2: Graph algo visualizer</em>
+</p>
 
 ---
 

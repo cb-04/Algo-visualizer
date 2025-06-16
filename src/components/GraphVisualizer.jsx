@@ -108,6 +108,15 @@ export default function GraphVisualizer() {
           {node.id}
         </div>
       ))}
+      <div className="instructions">
+        <h3> How to use:</h3>
+        <ul>
+          <li> Click anywhere on the screen to create a node.</li>
+          <li> Click two nodes in succession to create an edge (enter weight when prompted).</li>
+          <li> <strong>Shift + Click</strong> on a node to delete it.</li>
+        </ul>
+      </div>
+      
     </div>
   );
 }

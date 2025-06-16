@@ -87,15 +87,21 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  background-color: #222;
+  background-color: #1e1e2f;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 0 10px rgba(99, 102, 241, 0.3),   /* soft indigo glow */
+    0 0 20px rgba(99, 102, 241, 0.2),   /* outer glow */
+    0 0 40px rgba(99, 102, 241, 0.1);   /* extended reach glow */
   position: absolute;
   top: 50%;
   right: 30px;
   transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: box-shadow 0.3s ease;
 }
+
 
 .sorting-panel button {
   background: linear-gradient(135deg, #3f3f46, #52525b); /* slate-ish shades */

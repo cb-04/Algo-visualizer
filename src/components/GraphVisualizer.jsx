@@ -13,6 +13,8 @@ export default function GraphVisualizer() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [startNodeId, setStartNodeId] = useState(null);
   const [visitedNodes, setVisitedNodes] = useState([]);
+  const [isDirected, setIsDirected] = useState(true); // Default: directed edges
+
 
   const handleCanvasClick = (e) => {
     if (e.target.closest('.controls') || e.target.closest('.instructions')) return;
@@ -48,7 +50,7 @@ export default function GraphVisualizer() {
           const parsedWeight = parseFloat(weightInput);
 
           if (!isNaN(parsedWeight)) {
-            setEdges([...edges, { from: selectedNode, to: nodeId, weight: parsedWeight }]);
+            setEdges([...edges, { from: selectedNode, to: nodeId, weight: parsedWeight, directed: isDirected }]);
           } else {
             alert('Invalid weight. Edge not created.');
           }
@@ -115,6 +117,32 @@ export default function GraphVisualizer() {
           ))}
         </select>
 
+
+        <div className="edge-mode">
+          <h4>Edge Mode:</h4>
+          <div className="edge-mode-buttons">
+            <button
+              className={isDirected ? 'active' : ''}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDirected(true);
+              }}
+            >
+              Directed
+            </button>
+            <button
+              className={!isDirected ? 'active' : ''}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDirected(false);
+              }}
+            >
+              Undirected
+            </button>
+          </div>
+        </div>
+
+
         <div className="algo-buttons">
           <button onClick={runDFS}>Run DFS</button>
           <button onClick={runBFS}>Run BFS</button>
@@ -125,40 +153,43 @@ export default function GraphVisualizer() {
 
       {/* Edges */}
       {edges.map((edge, index) => {
-        const from = nodes.find(n => n.id === edge.from);
-        const to = nodes.find(n => n.id === edge.to);
-        if (!from || !to) return null;
+       const from = nodes.find(n => n.id === edge.from);
+       const to = nodes.find(n => n.id === edge.to);
+       if (!from || !to) return null;
 
-        const x1 = from.x + 15, y1 = from.y + 15;
-        const x2 = to.x + 15, y2 = to.y + 15;
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2;
-        const length = Math.hypot(x2 - x1, y2 - y1);
-        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+       const x1 = from.x + 15, y1 = from.y + 15;
+       const x2 = to.x + 15, y2 = to.y + 15;
+       const midX = (x1 + x2) / 2;
+       const midY = (y1 + y2) / 2;
+       const length = Math.hypot(x2 - x1, y2 - y1);
+       const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 
-        return (
-          <React.Fragment key={index}>
-            <div
-              className="edge"
-              style={{
-                left: `${x1}px`,
-                top: `${y1}px`,
-                width: `${length}px`,
-                transform: `rotate(${angle}deg)`
-              }}
-            />
-            <div
-              className="weight-label"
-              style={{
-                left: `${midX}px`,
-                top: `${midY}px`
-              }}
-            >
-              {edge.weight}
-            </div>
-          </React.Fragment>
-        );
-      })}
+       return (
+         <React.Fragment key={index}>
+           <div
+             className={`edge ${edge.directed ? 'directed' : ''}`}
+             style={{
+               left: `${x1}px`,
+               top: `${y1}px`,
+               width: `${length}px`,
+               transform: `rotate(${angle}deg)`
+             }}
+           >
+             {edge.directed && <div className="arrowhead" />}
+           </div>
+           <div
+             className="weight-label"
+             style={{
+               left: `${midX}px`,
+               top: `${midY}px`
+             }}
+           >
+             {edge.weight}
+           </div>
+         </React.Fragment>
+       );
+     })}
+
 
       {/* Nodes */}
       {nodes.map((node) => (

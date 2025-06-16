@@ -129,3 +129,69 @@
   transition: background-color 0.3s ease, border 0.3s ease;
 }
 
+.edge {
+  height: 2px;
+  background-color: white;
+  position: absolute;
+  transform-origin: 0 0;
+}
+
+.edge.directed {
+  position: relative;
+}
+
+.arrowhead {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 8px solid white;
+}
+
+.edge-mode {
+  margin-top: 1rem;
+}
+
+.edge-mode h4 {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #ccc;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.edge-mode-buttons {
+  display: flex;
+  gap: 12px; /* Adds nice spacing between buttons */
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.edge-mode-buttons button {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 2px solid #ffffff55;
+  background-color: #2a2a2a;
+  color: #f1f1f1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 2px 2px 6px #00000033;
+}
+
+.edge-mode-buttons button:hover {
+  background-color: #ffffff11;
+  border-color: #ffffff88;
+}
+
+.edge-mode-buttons button.active {
+  background-color: #ffc107;
+  color: #212121;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 0 8px #ffc10788;
+}

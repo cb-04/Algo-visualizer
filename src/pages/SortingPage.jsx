@@ -1,3 +1,12 @@
-export default function SortingPage() {
-  return <h2 style={{ textAlign: 'center', marginTop: '3rem' }}>Sorting Visualizer Coming Soon</h2>;
-}
+import React from 'react';
+import SortingVisualizer from '../components/SortingVisualizer';
+
+const SortingPage = () => {
+  return (
+    <div>
+      <SortingVisualizer />
+    </div>
+  );
+};
+
+export default SortingPage;

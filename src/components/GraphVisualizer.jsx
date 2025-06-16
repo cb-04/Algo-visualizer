@@ -25,21 +25,33 @@ export default function GraphVisualizer() {
     setNodes([...nodes, newNode]);
   };
 
-  const handleNodeClick = (nodeId) => {
-    if (selectedNode === null) {
-      setSelectedNode(nodeId);
-    } else {
-      if (selectedNode !== nodeId) {
-        const weightInput = prompt("Enter edge weight (positive or negative):", "1");
-        const weight = parseFloat(weightInput);
+  const handleNodeClick = (e, nodeId) => {
+    e.stopPropagation(); // Prevent canvas click
 
-        if (!isNaN(weight)) {
-          setEdges([...edges, { from: selectedNode, to: nodeId, weight }]);
-        } else {
-          alert("Invalid weight!");
-        }
+    if (e.shiftKey) {
+      // Delete node and its edges
+      setNodes(nodes.filter(node => node.id !== nodeId));
+      setEdges(edges.filter(edge => edge.from !== nodeId && edge.to !== nodeId));
+      if (selectedNode === nodeId) {
+        setSelectedNode(null);
       }
-      setSelectedNode(null);
+    } else {
+      // Select nodes for edge creation
+  if (selectedNode === null) {
+    setSelectedNode(nodeId);
+  } else {
+    if (selectedNode !== nodeId) {
+      const weightInput = prompt('Enter weight for the edge (can be negative):');
+      const parsedWeight = parseFloat(weightInput);
+
+      if (!isNaN(parsedWeight)) {
+        setEdges([...edges, { from: selectedNode, to: nodeId, weight: parsedWeight }]);
+      } else {
+        alert('Invalid weight. Edge not created.');
+      }
+    }
+    setSelectedNode(null);
+  }
     }
   };
 
@@ -87,10 +99,7 @@ export default function GraphVisualizer() {
         <div
           key={node.id}
           className={`node ${selectedNode === node.id ? 'selected' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation(); // Don’t trigger canvas click
-            handleNodeClick(node.id);
-          }}
+          onClick={(e) => handleNodeClick(e, node.id)} // 🧠 Fix is here
           style={{
             left: `${node.x}px`,
             top: `${node.y}px`

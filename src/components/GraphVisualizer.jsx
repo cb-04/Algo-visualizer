@@ -13,8 +13,7 @@ export default function GraphVisualizer() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [startNodeId, setStartNodeId] = useState(null);
   const [visitedNodes, setVisitedNodes] = useState([]);
-  const [isDirected, setIsDirected] = useState(true); // Default: directed edges
-
+  const [isDirected, setIsDirected] = useState(true);
 
   const handleCanvasClick = (e) => {
     if (e.target.closest('.controls') || e.target.closest('.instructions')) return;
@@ -50,7 +49,11 @@ export default function GraphVisualizer() {
           const parsedWeight = parseFloat(weightInput);
 
           if (!isNaN(parsedWeight)) {
-            setEdges([...edges, { from: selectedNode, to: nodeId, weight: parsedWeight, directed: isDirected }]);
+            setEdges(prev => [
+              ...prev,
+              { from: selectedNode, to: nodeId, weight: parsedWeight, directed: isDirected },
+              ...(isDirected ? [] : [{ from: nodeId, to: selectedNode, weight: parsedWeight, directed: isDirected }])
+            ]);
           } else {
             alert('Invalid weight. Edge not created.');
           }
@@ -117,31 +120,20 @@ export default function GraphVisualizer() {
           ))}
         </select>
 
-
-        <div className="edge-mode">
-          <h4>Edge Mode:</h4>
-          <div className="edge-mode-buttons">
-            <button
-              className={isDirected ? 'active' : ''}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDirected(true);
-              }}
-            >
-              Directed
-            </button>
-            <button
-              className={!isDirected ? 'active' : ''}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDirected(false);
-              }}
-            >
-              Undirected
-            </button>
-          </div>
+        <div className="edge-toggle-container">
+          <button
+            className={`edge-toggle-button ${isDirected ? 'active' : ''}`}
+            onClick={() => setIsDirected(true)}
+          >
+            Directed
+          </button>
+          <button
+            className={`edge-toggle-button ${!isDirected ? 'active' : ''}`}
+            onClick={() => setIsDirected(false)}
+          >
+            Undirected
+          </button>
         </div>
-
 
         <div className="algo-buttons">
           <button onClick={runDFS}>Run DFS</button>
@@ -151,45 +143,82 @@ export default function GraphVisualizer() {
         </div>
       </div>
 
-      {/* Edges */}
+      {/* SVG Edges */}
+      <svg className="edge-layer" width="100%" height="100%">
+        <defs>
+          <marker
+            id="arrowhead"
+            markerWidth="10"
+            markerHeight="7"
+            refX="10"
+            refY="3.5"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3.5, 0 7" fill="white" />
+          </marker>
+        </defs>
+
+        {edges.map((edge, index) => {
+          const from = nodes.find(n => n.id === edge.from);
+          const to = nodes.find(n => n.id === edge.to);
+          if (!from || !to) return null;
+
+          const x1 = from.x + 15;
+          const y1 = from.y + 15;
+          const x2 = to.x + 15;
+          const y2 = to.y + 15;
+
+          // Calculate direction
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          const distance = Math.hypot(dx, dy);
+          const nodeRadius = 15; // Adjust based on node size
+
+          // Shorten end of line to stop before hitting the node
+          const shortenRatio = (distance - nodeRadius) / distance;
+          const shortenedX2 = x1 + dx * shortenRatio;
+          const shortenedY2 = y1 + dy * shortenRatio;
+
+          // Similarly, if you want to shorten the start too (optional)
+          const shortenStartRatio = nodeRadius / distance;
+          const shortenedX1 = x1 + dx * shortenStartRatio;
+          const shortenedY1 = y1 + dy * shortenStartRatio;
+
+
+          return (
+            <line
+              x1={shortenedX1}
+              y1={shortenedY1}
+              x2={shortenedX2}
+              y2={shortenedY2}
+              stroke="white"
+              strokeWidth="2"
+              markerEnd={edge.directed ? 'url(#arrowhead)' : ''}
+            />
+
+          );
+        })}
+      </svg>
+
+      {/* Edge Weights */}
       {edges.map((edge, index) => {
-       const from = nodes.find(n => n.id === edge.from);
-       const to = nodes.find(n => n.id === edge.to);
-       if (!from || !to) return null;
+        const from = nodes.find(n => n.id === edge.from);
+        const to = nodes.find(n => n.id === edge.to);
+        if (!from || !to) return null;
 
-       const x1 = from.x + 15, y1 = from.y + 15;
-       const x2 = to.x + 15, y2 = to.y + 15;
-       const midX = (x1 + x2) / 2;
-       const midY = (y1 + y2) / 2;
-       const length = Math.hypot(x2 - x1, y2 - y1);
-       const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        const midX = (from.x + to.x) / 2;
+        const midY = (from.y + to.y) / 2;
 
-       return (
-         <React.Fragment key={index}>
-           <div
-             className={`edge ${edge.directed ? 'directed' : ''}`}
-             style={{
-               left: `${x1}px`,
-               top: `${y1}px`,
-               width: `${length}px`,
-               transform: `rotate(${angle}deg)`
-             }}
-           >
-             {edge.directed && <div className="arrowhead" />}
-           </div>
-           <div
-             className="weight-label"
-             style={{
-               left: `${midX}px`,
-               top: `${midY}px`
-             }}
-           >
-             {edge.weight}
-           </div>
-         </React.Fragment>
-       );
-     })}
-
+        return (
+          <div
+            key={`weight-${index}`}
+            className="weight-label"
+            style={{ left: `${midX + 15}px`, top: `${midY + 15}px` }}
+          >
+            {edge.weight}
+          </div>
+        );
+      })}
 
       {/* Nodes */}
       {nodes.map((node) => (
@@ -197,10 +226,7 @@ export default function GraphVisualizer() {
           key={node.id}
           className={`node ${selectedNode === node.id ? 'selected' : ''} ${visitedNodes.includes(node.id) ? 'visited' : ''}`}
           onClick={(e) => handleNodeClick(e, node.id)}
-          style={{
-            left: `${node.x}px`,
-            top: `${node.y}px`
-          }}
+          style={{ left: `${node.x}px`, top: `${node.y}px` }}
         >
           {node.id}
         </div>

@@ -1,60 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import '../styles/GraphVisualizer.css';
 
-const NUM_ROWS = 20;
-const NUM_COLS = 40;
-const START_NODE_ROW = 5;
-const START_NODE_COL = 5;
-const END_NODE_ROW = 15;
-const END_NODE_COL = 35;
+let nodeIdCounter = 1;
 
-const GraphVisualizer = () => {
-  const [grid, setGrid] = useState([]);
+export default function GraphVisualizer() {
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [selectedNode, setSelectedNode] = useState(null);
 
-  useEffect(() => {
-    const initialGrid = createGrid();
-    setGrid(initialGrid);
-  }, []);
+  const handleCanvasClick = (e) => {
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  const createGrid = () => {
-    const newGrid = [];
-    for (let row = 0; row < NUM_ROWS; row++) {
-      const currentRow = [];
-      for (let col = 0; col < NUM_COLS; col++) {
-        currentRow.push(createNode(row, col));
-      }
-      newGrid.push(currentRow);
-    }
-    return newGrid;
+    const newNode = {
+      id: nodeIdCounter++,
+      x,
+      y
+    };
+
+    setNodes([...nodes, newNode]);
   };
 
-  const createNode = (row, col) => {
-    return {
-      row,
-      col,
-      isStart: row === START_NODE_ROW && col === START_NODE_COL,
-      isEnd: row === END_NODE_ROW && col === END_NODE_COL,
-      isWall: false,
-    };
+  const handleNodeClick = (nodeId) => {
+    if (selectedNode === null) {
+      setSelectedNode(nodeId);
+    } else {
+      if (selectedNode !== nodeId) {
+        setEdges([...edges, { from: selectedNode, to: nodeId }]);
+      }
+      setSelectedNode(null);
+    }
   };
 
   return (
-    <div className="grid">
-      {grid.map((row, rowIdx) => (
-        <div key={rowIdx} className="grid-row">
-          {row.map((node, nodeIdx) => {
-            const { isStart, isEnd, isWall } = node;
-            let className = 'node';
-            if (isStart) className += ' start';
-            else if (isEnd) className += ' end';
-            else if (isWall) className += ' wall';
+    <div className="graph-canvas" onClick={handleCanvasClick}>
+      {/* Edges */}
+      {edges.map((edge, index) => {
+        const from = nodes.find(n => n.id === edge.from);
+        const to = nodes.find(n => n.id === edge.to);
+        if (!from || !to) return null;
 
-            return <div key={nodeIdx} className={className}></div>;
-          })}
+        const x1 = from.x + 15, y1 = from.y + 15;
+        const x2 = to.x + 15, y2 = to.y + 15;
+        const length = Math.hypot(x2 - x1, y2 - y1);
+        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+        return (
+          <div
+            key={index}
+            className="edge"
+            style={{
+              left: `${x1}px`,
+              top: `${y1}px`,
+              width: `${length}px`,
+              transform: `rotate(${angle}deg)`
+            }}
+          />
+        );
+      })}
+
+      {/* Nodes */}
+      {nodes.map((node) => (
+        <div
+          key={node.id}
+          className={`node ${selectedNode === node.id ? 'selected' : ''}`}
+          style={{ left: node.x, top: node.y }}
+          onClick={(e) => {
+            e.stopPropagation(); // prevent canvas click
+            handleNodeClick(node.id);
+          }}
+        >
+          {node.id}
         </div>
       ))}
     </div>
   );
-};
-
-export default GraphVisualizer;
+}

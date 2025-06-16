@@ -1,0 +1,12 @@
+.global-footer {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  font-family: 'Comic Sans MS', cursive;
+  font-size: 1.2rem;
+  color: #aaa;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.2);
+  opacity: 0.7;
+  z-index: 100;
+  user-select: none;
+}

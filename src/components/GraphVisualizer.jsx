@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/GraphVisualizer.css';
+import dfs from '../algorithms/dfs';
+import bfs from '../algorithms/bfs';
+import dijkstra from '../algorithms/dijkstra';
+import bellmanFord from '../algorithms/bellmanFord';
 
 let nodeIdCounter = 1;
 
@@ -7,9 +11,9 @@ export default function GraphVisualizer() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [startNodeId, setStartNodeId] = useState(null);
 
   const handleCanvasClick = (e) => {
-    // Prevent creating node if clicking on existing node or label
     if (e.target.classList.contains('node') || e.target.classList.contains('weight-label')) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -26,37 +30,86 @@ export default function GraphVisualizer() {
   };
 
   const handleNodeClick = (e, nodeId) => {
-    e.stopPropagation(); // Prevent canvas click
+    e.stopPropagation();
 
     if (e.shiftKey) {
-      // Delete node and its edges
       setNodes(nodes.filter(node => node.id !== nodeId));
       setEdges(edges.filter(edge => edge.from !== nodeId && edge.to !== nodeId));
       if (selectedNode === nodeId) {
         setSelectedNode(null);
       }
     } else {
-      // Select nodes for edge creation
-  if (selectedNode === null) {
-    setSelectedNode(nodeId);
-  } else {
-    if (selectedNode !== nodeId) {
-      const weightInput = prompt('Enter weight for the edge (can be negative):');
-      const parsedWeight = parseFloat(weightInput);
-
-      if (!isNaN(parsedWeight)) {
-        setEdges([...edges, { from: selectedNode, to: nodeId, weight: parsedWeight }]);
+      if (selectedNode === null) {
+        setSelectedNode(nodeId);
       } else {
-        alert('Invalid weight. Edge not created.');
+        if (selectedNode !== nodeId) {
+          const weightInput = prompt('Enter weight for the edge (can be negative):');
+          const parsedWeight = parseFloat(weightInput);
+
+          if (!isNaN(parsedWeight)) {
+            setEdges([...edges, { from: selectedNode, to: nodeId, weight: parsedWeight }]);
+          } else {
+            alert('Invalid weight. Edge not created.');
+          }
+        }
+        setSelectedNode(null);
       }
     }
-    setSelectedNode(null);
-  }
+  };
+
+  const runDFS = () => {
+    if (startNodeId === null) return alert('Please select a start node!');
+    const visited = dfs(nodes, edges, startNodeId);
+    alert(`DFS Order: ${visited.join(' → ')}`);
+  };
+
+  const runBFS = () => {
+    if (startNodeId === null) return alert('Please select a start node!');
+    const visited = bfs(nodes, edges, startNodeId);
+    alert(`BFS Order: ${visited.join(' → ')}`);
+  };
+
+  const runDijkstra = () => {
+    if (startNodeId === null) return alert('Please select a start node!');
+    const { distances } = dijkstra(nodes, edges, startNodeId);
+    alert(`Distances:\n${JSON.stringify(distances, null, 2)}`);
+  };
+
+  const runBellmanFord = () => {
+    if (startNodeId === null) return alert('Please select a start node!');
+    const result = bellmanFord(nodes, edges, startNodeId);
+    if (result.hasNegativeCycle) {
+      alert('Graph contains a negative weight cycle.');
+    } else {
+      alert(`Distances:\n${JSON.stringify(result.distances, null, 2)}`);
     }
   };
 
   return (
     <div className="graph-canvas" onClick={handleCanvasClick}>
+      {/* Controls */}
+      <div className="controls">
+        <h3>Choose Start Node:</h3>
+        <select
+          value={startNodeId ?? ''}
+          onChange={(e) => setStartNodeId(parseInt(e.target.value))}
+        >
+          <option value="">Select Start Node</option>
+          {nodes.map((node) => (
+            <option key={node.id} value={node.id}>
+              Node {node.id}
+            </option>
+          ))}
+        </select>
+
+        <div className="algo-buttons">
+          <button onClick={runDFS}>Run DFS</button>
+          <button onClick={runBFS}>Run BFS</button>
+          <button onClick={runDijkstra}>Run Dijkstra</button>
+          <button onClick={runBellmanFord}>Run Bellman-Ford</button>
+        </div>
+      </div>
+
       {/* Edges */}
       {edges.map((edge, index) => {
         const from = nodes.find(n => n.id === edge.from);
@@ -99,7 +152,7 @@ export default function GraphVisualizer() {
         <div
           key={node.id}
           className={`node ${selectedNode === node.id ? 'selected' : ''}`}
-          onClick={(e) => handleNodeClick(e, node.id)} // 🧠 Fix is here
+          onClick={(e) => handleNodeClick(e, node.id)}
           style={{
             left: `${node.x}px`,
             top: `${node.y}px`
@@ -108,6 +161,7 @@ export default function GraphVisualizer() {
           {node.id}
         </div>
       ))}
+
       <div className="instructions">
         <h3> How to use:</h3>
         <ul>
@@ -116,7 +170,6 @@ export default function GraphVisualizer() {
           <li> <strong>Shift + Click</strong> on a node to delete it.</li>
         </ul>
       </div>
-      
     </div>
   );
 }

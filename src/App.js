@@ -5,6 +5,7 @@ import Home from './components/Home';
 import SortingPage from './pages/SortingPage';
 import GraphPage from './pages/GraphPage';
 import './styles/App.css';
+import Footer from './components/Footer';
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/sorting" element={<SortingPage />} />
         <Route path="/graph" element={<GraphPage />} />
       </Routes>
+      <Footer />
     </Router>
   );
 }
